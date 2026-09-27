@@ -92,9 +92,10 @@ export class MissionSystem {
   // ------------------------------------------------------------ mission NPCs
   spawnNpc(def) {
     if (this.npcs.has(def.id)) return this.npcs.get(def.id);
-    const app = makeAppearance(def.role, 9000 + def.id.length * 131 + def.id.charCodeAt(0));
-    const model = buildHuman(app, this.game.faceAtlas);
-    const animator = new Animator(model);
+    const seed = 9000 + def.id.length * 131 + def.id.charCodeAt(0);
+    const real = this.game.assets?.makeNpc(def.role, seed);
+    const model = real || buildHuman(makeAppearance(def.role, seed), this.game.faceAtlas);
+    const animator = real ? real.animator : new Animator(model);
     let x = def.x;
     let z = def.z;
     let rot = def.rot ?? 0;
@@ -118,8 +119,10 @@ export class MissionSystem {
   releaseNpcs() {
     for (const n of this.npcs.values()) {
       this.scene.remove(n.model.mesh);
-      n.model.mesh.geometry.dispose();
-      n.model.mesh.skeleton.dispose();
+      if (n.model.mesh.isSkinnedMesh) {
+        n.model.mesh.geometry.dispose();
+        n.model.mesh.skeleton.dispose();
+      }
     }
     for (const sp of this.game.world.landmarks.spots) sp.reserved = false;
     this.npcs.clear();

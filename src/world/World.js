@@ -22,7 +22,8 @@ const TOWN_TYPES = new Set(['bazaar', 'commercial', 'residential', 'town', 'prin
 const GCELL = 50;
 
 export class World {
-  constructor(engine, events) {
+  constructor(engine, events, assets = null) {
+    this.assets = assets;
     this.engine = engine;
     this.scene = engine.scene;
     this.events = events;
@@ -53,7 +54,7 @@ export class World {
       this.buildRoads();
     });
     await step('முக்கிய இடங்கள்… (landmarks)', 0.3, () => {
-      const lm = buildLandmarks(this.mats, this.preset.shadows);
+      const lm = buildLandmarks(this.mats, this.preset.shadows, this.assets);
       this.landmarks = lm;
       this.scene.add(lm.group);
       lm.colliders.forEach((c) => this.addGlobalCollider(c));

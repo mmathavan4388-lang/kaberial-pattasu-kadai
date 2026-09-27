@@ -517,7 +517,7 @@ const PAVING = {
 // extra paving [width, depth, z offset] so forecourts reach the road
 const PAVE_EXTRA = { busstand: [28, 26, 13], temple: [16, 40, 20], hospital: [10, 24, 12], police: [6, 14, 7], firestation: [6, 14, 7], school: [6, 14, 7], press: [4, 14, 7], hotel: [0, 8, 4], mechanic: [0, 8, 4], home: [2, 6, 3] };
 
-export function buildLandmarks(mats, castShadow) {
+export function buildLandmarks(mats, castShadow, assets = null) {
   const group = new THREE.Group();
   const colliders = [];
   const spots = [];
@@ -531,6 +531,15 @@ export function buildLandmarks(mats, castShadow) {
     }
     RECIPES[lm.type]?.(S);
     const lod = S.finish(castShadow);
+    // a realistic authored model can replace the detailed level of any landmark
+    const real = assets?.landmarkModel(lm.id);
+    if (real) {
+      real.position.set(0, S.y, 0);
+      real.rotation.y += lm.rot;
+      lod.levels[0].object.clear();
+      lod.levels[0].object.position.set(0, 0, 0);
+      lod.levels[0].object.add(real);
+    }
     group.add(lod);
     colliders.push(...S.colliders);
     spots.push(...S.spots);

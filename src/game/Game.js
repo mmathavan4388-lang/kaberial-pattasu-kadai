@@ -65,10 +65,13 @@ export class Game {
     await loadFonts();
     this.engine = new Engine(this.canvas, this.settings);
     this.assets = await new AssetRegistry().init();
-    this.world = new World(this.engine, this.events);
+    if (this.assets.hasAny) {
+      await this.assets.preload((f) => this.ui.setMenuStatus(`<span class="ta">3D மாடல்கள் ஏற்றுகிறது… ${Math.round(f * 100)}%</span><span class="en">Loading realistic models…</span>`));
+    }
+    this.world = new World(this.engine, this.events, this.assets);
     await this.world.init();
     this.faceAtlas = new FaceAtlas(this.engine.preset.textureSize >= 2048 ? 2048 : 1024);
-    this.vehicleFactory = new VehicleFactory(this.world.mats);
+    this.vehicleFactory = new VehicleFactory(this.world.mats, this.assets);
     this.env = new Environment(this);
     this.engine.onUpdate((dt) => this.update(dt));
     const ms = Math.round(performance.now() - t0);
@@ -97,8 +100,7 @@ export class Game {
       // hero character (premium glTF if provided, otherwise procedural)
       ui.showLoading(0.1, 'லியோமாதவ் தயாராகிறார்… (hero)');
       await new Promise((r) => setTimeout(r, 0));
-      const gltf = await this.assets.loadCharacter('hero');
-      let hero = gltf;
+      let hero = this.assets.makeHero();
       if (!hero) {
         const m = buildHuman(heroAppearance(), this.faceAtlas);
         hero = { ...m, animator: new Animator(m) };

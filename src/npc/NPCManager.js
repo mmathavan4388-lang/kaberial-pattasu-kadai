@@ -57,9 +57,15 @@ export class NPCManager {
 
   // ------------------------------------------------------------ model pool
   buildModel(role) {
-    const app = makeAppearance(role, this.seed++);
-    const model = buildHuman(app, this.atlas);
-    const entry = { model, animator: new Animator(model), role, inUse: false };
+    const seed = this.seed++;
+    // realistic glTF model when one is provided for this role, else procedural
+    const real = this.game.assets?.makeNpc(role, seed);
+    let entry;
+    if (real) entry = { model: real, animator: real.animator, role, inUse: false };
+    else {
+      const model = buildHuman(makeAppearance(role, seed), this.atlas);
+      entry = { model, animator: new Animator(model), role, inUse: false };
+    }
     this.pool.push(entry);
     return entry;
   }

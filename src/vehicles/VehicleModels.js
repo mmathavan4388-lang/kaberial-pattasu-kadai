@@ -51,8 +51,9 @@ function cabin(b, y0, y1, z0, z1, zt0, zt1, w0, w1, glass, pillar) {
 }
 
 export class VehicleFactory {
-  constructor(mats) {
+  constructor(mats, assets = null) {
     this.mats = mats;
+    this.assets = assets;
     this.bodyMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.42, metalness: 0.28 });
     this.lightMat = new THREE.MeshBasicMaterial({ vertexColors: true });
     this.lightMat.color.setScalar(0.7);
@@ -290,12 +291,22 @@ export class VehicleFactory {
   instance(type, variant, castShadow = true) {
     const m = this.model(type, variant);
     const group = new THREE.Group();
-    const body = new THREE.Mesh(m.geometry, this.bodyMat);
-    body.castShadow = castShadow;
-    body.receiveShadow = true;
+    const real = this.assets?.vehicleModel(type, m.spec);
+    let body;
+    let spec = m.spec;
+    if (real) {
+      // realistic authored vehicle: its own body, lights and (usually) wheels
+      body = new THREE.Group();
+      body.add(real.object);
+      if (real.seat) spec = { ...spec, seat: real.seat };
+    } else {
+      body = new THREE.Mesh(m.geometry, this.bodyMat);
+      body.castShadow = castShadow;
+      body.receiveShadow = true;
+    }
     group.add(body);
-    if (m.lights) group.add(new THREE.Mesh(m.lights, this.lightMat));
-    if (m.signs) group.add(new THREE.Mesh(m.signs, this.mats.signs));
+    if (!real && m.lights) group.add(new THREE.Mesh(m.lights, this.lightMat));
+    if (!real && m.signs) group.add(new THREE.Mesh(m.signs, this.mats.signs));
     const sirens = [];
     for (const [c, x, y, z, w] of m.siren) {
       const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, 0.14, 0.25), c === 'red' ? this.sirenRed : this.sirenBlue);
@@ -304,7 +315,6 @@ export class VehicleFactory {
       group.add(mesh);
       sirens.push(mesh);
     }
-    // lean pivot for two-wheelers
-    return { group, body, sirens, spec: m.spec };
+    return { group, body, sirens, spec, ownWheels: !!real?.ownWheels };
   }
 }

@@ -15,6 +15,7 @@ export class Vehicle {
     this.body = inst.body;
     this.sirens = inst.sirens;
     this.spec = inst.spec;
+    this.ownWheels = inst.ownWheels;
     this.pos = this.group.position;
     this.heading = 0;
     this.speed = 0;
@@ -125,6 +126,7 @@ export class Vehicle {
 
   /** Write wheel instance matrices; returns number written. */
   writeWheels(mesh, start, tmp) {
+    if (this.ownWheels) return 0; // realistic model brings its own wheels
     const sp = this.spec;
     const s = Math.sin(this.heading);
     const c = Math.cos(this.heading);

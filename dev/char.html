@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet"></head>
+<body style="margin:0;background:#222"><canvas id="c" style="width:100vw;height:100vh;display:block"></canvas>
+<script type="module">
+import * as THREE from 'three';
+import { FaceAtlas } from '/src/characters/FaceAtlas.js';
+import { buildHuman } from '/src/characters/HumanModel.js';
+import { heroAppearance, makeAppearance } from '/src/characters/Appearance.js';
+import { Animator } from '/src/characters/Animator.js';
+const r = new THREE.WebGLRenderer({canvas: document.getElementById('c'), antialias: true});
+r.setSize(innerWidth, innerHeight, false); r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#8fb6d8');
+const cam = new THREE.PerspectiveCamera(35, innerWidth/innerHeight, 0.05, 100);
+const q = new URLSearchParams(location.search);
+const close = q.get('close');
+if (close) { cam.position.set(0.25, 1.72, 0.75); cam.lookAt(0, 1.66, 0); } else { cam.position.set(0, 1.4, 9); cam.lookAt(0, 1.0, 0); }
+scene.add(new THREE.HemisphereLight(0xffffff, 0x886644, 1.2));
+const sun = new THREE.DirectionalLight(0xfff0dd, 2.5); sun.position.set(3, 5, 4); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(40,40).rotateX(-Math.PI/2), new THREE.MeshStandardMaterial({color:'#9a8a70'})); scene.add(ground);
+const atlas = new FaceAtlas(2048);
+const anims = [];
+const t0 = performance.now();
+const hero = buildHuman(heroAppearance(), atlas); scene.add(hero.mesh); anims.push(new Animator(hero));
+const roles = ['woman','police','oldman','girl','shop_owner','doctor','firefighter','priest','nurse','railway','business_owner','boy'];
+roles.forEach((role, i) => { const m = buildHuman(makeAppearance(role, i+5), atlas); m.mesh.position.set((i%2?1:-1)*(1+Math.floor(i/2))*0.95, 0, -Math.floor(i/2)*0.3); scene.add(m.mesh); const a = new Animator(m); anims.push(a); if (i===3) a.setState('walk'); if(i===5) a.setState('talk'); });
+console.log('build ms', (performance.now()-t0).toFixed(1), 'verts', hero.mesh.geometry.attributes.position.count);
+if (q.get('state')) anims[0].setState(q.get('state'));
+let last = performance.now();
+function loop(){ const now=performance.now(); const dt=Math.min(0.05,(now-last)/1000); last=now; anims.forEach((a,i)=>a.update(dt, a.state==='walk'?1.3:a.state==='run'?5:0)); r.render(scene,cam); requestAnimationFrame(loop);} loop();
+window.__ready = true;
+</script></body></html>

@@ -1,0 +1,19 @@
+{
+  "name": "leomathav-sivakasi-open-world",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "LEOMATHAV — Sivakasi Open World: a modular open-world 3D game (Three.js)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "node scripts/check-map.mjs"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "vite": "^8.3.1"
+  }
+}

@@ -116,7 +116,11 @@ export class MissionSystem {
   }
 
   releaseNpcs() {
-    for (const n of this.npcs.values()) this.scene.remove(n.model.mesh);
+    for (const n of this.npcs.values()) {
+      this.scene.remove(n.model.mesh);
+      n.model.mesh.geometry.dispose();
+      n.model.mesh.skeleton.dispose();
+    }
     for (const sp of this.game.world.landmarks.spots) sp.reserved = false;
     this.npcs.clear();
   }

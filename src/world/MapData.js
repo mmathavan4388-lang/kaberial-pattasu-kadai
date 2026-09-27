@@ -127,6 +127,7 @@ export const LANDMARKS = [
   { id: 'busstand', type: 'busstand', ta: 'சிவகாசி பேருந்து நிலையம்', en: 'Sivakasi Bus Stand', x: 76, z: 76, rot: 0, w: 104, d: 84, reserve: 66 },
   { id: 'market', type: 'market', ta: 'காய்கறி சந்தை', en: 'Vegetable Market', x: -76, z: 76, rot: Math.PI / 2, w: 80, d: 70, reserve: 55 },
   { id: 'police', type: 'police', ta: 'சிவகாசி காவல் நிலையம்', en: 'Sivakasi Police Station', x: 225, z: -30, rot: 0, w: 34, d: 22, reserve: 34 },
+  { id: 'police_tt', type: 'police', ta: 'திருத்தங்கல் காவல் நிலையம்', en: 'Thiruthangal Police Station', x: -1027, z: -575, rot: -Math.PI / 2, w: 34, d: 22, reserve: 32 },
   { id: 'hospital', type: 'hospital', ta: 'அரசு மருத்துவமனை', en: 'Government Hospital', x: 225, z: -215, rot: 0, w: 70, d: 28, reserve: 52 },
   { id: 'firestation', type: 'firestation', ta: 'தீயணைப்பு நிலையம்', en: 'Fire & Rescue Station', x: 375, z: 128, rot: 0, w: 32, d: 22, reserve: 30 },
   { id: 'press', type: 'press', ta: 'ஸ்ரீ லட்சுமி ஆப்செட் பிரிண்டர்ஸ்', en: 'Sri Lakshmi Offset Printers', x: -225, z: -410, rot: Math.PI, w: 44, d: 24, reserve: 36 },

@@ -358,7 +358,7 @@ const RECIPES = {
   police(S) {
     S.building(0, -4, 0, { kind: 'house', w: 30, d: 14, floors: 2, paint: '#f1e4c6', winRow: ROW.WIN_A, tank: true });
     S.sign('lm_police_board', 0, 3.5, 3.2, 10, 1.6);
-    S.sign('lm_police', 0, 6.8, 3.15, 14, 1.4);
+    S.sign(`lm_${S.lm.id}`, 0, 6.8, 3.15, 14, 1.4);
     S.box(-12, 0.8, 9.5, 8, 1.6, 0.4, '#c62828', true);
     S.box(12, 0.8, 9.5, 8, 1.6, 0.4, '#c62828', true);
     S.cyl(-8, 0, 7, 0.06, 0.08, 9, '#dddddd');

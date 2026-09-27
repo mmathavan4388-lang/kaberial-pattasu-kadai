@@ -178,7 +178,7 @@ export class Environment {
     const sunColor = new THREE.Color(0xfff4e2).lerp(new THREE.Color(0xff9a52), golden * 0.8);
     this.sun.color.copy(sunColor);
     this.sun.intensity = day * 3.6 * this.w.sun;
-    this.hemi.intensity = 0.75 + day * 0.45 * (0.7 + 0.3 * this.w.sun);
+    this.hemi.intensity = 0.75 + this.night * 0.3 + day * 0.45 * (0.7 + 0.3 * this.w.sun);
     this.hemi.color.set(0xe3ebf5).lerp(new THREE.Color(0x56679c), this.night);
     this.hemi.groundColor.set(0xb08a60).lerp(new THREE.Color(0x2c2620), this.night);
     this.moonLight.intensity = this.night * 0.7;

@@ -112,6 +112,7 @@ button { font-family: var(--ta); cursor: pointer; }
 .presets button small { display: block; font-size: 10px; font-weight: 400; color: #69f0ae; font-family: var(--ta); }
 .presets button.sel { background: rgba(255,196,0,0.45); border-color: var(--gold); }
 .preset-info, .hw { font-size: 13px; opacity: 0.8; }
+.preset-info .en { display: inline; margin: 0 2px; font-size: 1em; }
 .panel label { display: flex; align-items: center; gap: 10px; font-size: 15px; }
 .panel label .en { display: inline; }
 .panel input[type=range] { flex: 1; }

@@ -337,7 +337,7 @@ export class UI {
         <table class="controls">${CONTROLS.map(([k, ta, en]) => `<tr><td class="key">${k}</td><td>${this.t({ ta, en })}</td></tr>`).join('')}</table>
         <button data-act="back">${this.t({ ta: 'பின்செல்', en: 'Back' })}</button></div>`;
     } else if (kind === 'map') {
-      const size = Math.min(innerWidth, innerHeight) - 120;
+      const size = Math.max(280, Math.min(innerWidth - 80, innerHeight - 190));
       this.modalEl.innerHTML = `<div class="panel map"><h2>${this.t({ ta: 'சிவகாசி வரைபடம்', en: 'Map of Sivakasi' })}</h2>
         <canvas width="${size}" height="${size}"></canvas>
         <div class="legend">🟡 ${this.t({ ta: 'புதிய பணி', en: 'New mission' })} &nbsp; 🔵 ${this.t({ ta: 'இலக்கு', en: 'Objective' })}</div>

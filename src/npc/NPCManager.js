@@ -336,11 +336,16 @@ export class NPCManager {
     const density = env.hour >= 22 || env.hour < 5 ? 0.35 : env.hour < 7 ? 0.6 : 1;
     const target = Math.round(this.preset.npcCount * 0.5 * density);
 
-    // background pool growth (one model per few frames, under budget)
-    if (this.buildQueue.length && this.frame % 3 === 0 && this.pool.length < this.maxModels) {
-      this.buildModel(this.buildQueue.shift());
-    } else if (this.frame % 20 === 0 && this.pool.length < this.maxModels && this.pool.filter((e) => !e.inUse).length < 4) {
-      this.buildModel(weightedPick(this.rng, walkerRoles(env.hour)));
+    // background pool growth: at most one new character every 0.4 s (~5-7 ms each)
+    const now = performance.now();
+    if (this.pool.length < this.maxModels && now - (this.lastBuild || 0) > 400) {
+      if (this.buildQueue.length) {
+        this.buildModel(this.buildQueue.shift());
+        this.lastBuild = now;
+      } else if (this.pool.filter((e) => !e.inUse).length < 4) {
+        this.buildModel(weightedPick(this.rng, walkerRoles(env.hour)));
+        this.lastBuild = now;
+      }
     }
 
     this.spawnTimer -= dt;

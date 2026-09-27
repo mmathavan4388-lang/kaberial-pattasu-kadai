@@ -72,7 +72,9 @@ export class PoliceSystem {
     }
     if (!best) return;
     const v = this.game.traffic.acquire('police');
-    v.place(best.x, best.z, Math.atan2(player.x - best.x, player.z - best.z));
+    const e = best.e;
+    const toward = (player.x - best.x) * e.dx + (player.z - best.z) * e.dz > 0 ? 1 : -1;
+    v.place(best.x, best.z, Math.atan2(e.dx * toward, e.dz * toward));
     v.ai = { pursuit: true, path: null, repath: 0, stuck: 0, reverse: 0 };
     v.sirenOn = true;
     this.game.traffic.addCrew(v);
@@ -80,39 +82,68 @@ export class PoliceSystem {
     this.pursuers.push(v);
   }
 
+  /** Plan a road route that starts from whichever end of the current edge makes sense. */
+  planRoute(v, target) {
+    const roads = this.game.world.roads;
+    const goal = roads.nearestNode(target.x, target.z);
+    const near = roads.nearest(v.pos.x, v.pos.z);
+    const starts = near ? [near.edge.a, near.edge.b] : [roads.nearestNode(v.pos.x, v.pos.z)];
+    const f = v.forward;
+    let best = null;
+    for (const n of starts) {
+      const path = roads.astar(n, goal);
+      if (!path) continue;
+      let len = Math.hypot(n.x - v.pos.x, n.z - v.pos.z);
+      for (let i = 1; i < path.length; i++) len += Math.hypot(path[i].x - path[i - 1].x, path[i].z - path[i - 1].z);
+      const behind = (n.x - v.pos.x) * f.x + (n.z - v.pos.z) * f.z < 0;
+      if (behind && Math.abs(v.speed) > 4) len += 60; // avoid U-turns at speed
+      if (!best || len < best.len) best = { path, len };
+    }
+    return best ? best.path : null;
+  }
+
   drivePursuer(v, dt, target) {
     const ai = v.ai;
-    const roads = this.game.world.roads;
     const d = Math.hypot(target.x - v.pos.x, target.z - v.pos.z);
     let goal = target;
+    let limit = v.spec.maxSpeed;
     ai.repath -= dt;
-    if (d > 45) {
+    if (d > 40) {
       if (ai.repath <= 0 || !ai.path) {
-        ai.repath = 2;
-        const a = roads.nearestNode(v.pos.x, v.pos.z);
-        const b = roads.nearestNode(target.x, target.z);
-        ai.path = roads.astar(a, b) || null;
+        ai.repath = 2.5;
+        ai.path = this.planRoute(v, target);
         ai.pi = 0;
       }
-      if (ai.path && ai.pi < ai.path.length) {
-        const n = ai.path[ai.pi];
+      const path = ai.path;
+      if (path && ai.pi < path.length) {
+        const n = path[ai.pi];
+        const dn = Math.hypot(n.x - v.pos.x, n.z - v.pos.z);
+        const next = path[ai.pi + 1];
         goal = n;
-        if (Math.hypot(n.x - v.pos.x, n.z - v.pos.z) < 12) ai.pi++;
+        if (next) {
+          // corner: slow down and cut toward the next leg a little
+          const ax = n.x - v.pos.x, az = n.z - v.pos.z;
+          const bx = next.x - n.x, bz = next.z - n.z;
+          const turn = Math.acos(Math.max(-1, Math.min(1, (ax * bx + az * bz) / ((Math.hypot(ax, az) || 1) * (Math.hypot(bx, bz) || 1)))));
+          if (turn > 0.4) limit = Math.min(limit, 7 + Math.max(0, dn - 8) * 0.55);
+          if (dn < 14) goal = { x: n.x + (next.x - n.x) * 0.2, z: n.z + (next.z - n.z) * 0.2 };
+        }
+        if (dn < 9) ai.pi++;
       }
-    }
+    } else if (d < 25) limit = 6 + d * 0.5;
     const desired = Math.atan2(goal.x - v.pos.x, goal.z - v.pos.z);
     const diff = wrapAngle(desired - v.heading);
-    let throttle = d < 10 ? 0.35 : 1;
-    let steer = clamp(diff * 2.2, -1, 1);
-    if (Math.abs(diff) > 2.2 && d < 25) throttle = 0.5;
-    // unstick
+    let steer = clamp(diff * 2.4, -1, 1);
+    let throttle = v.speed > limit ? -0.7 : 1;
+    if (Math.abs(diff) > 1.6 && v.speed > 6) throttle = -0.6;
+    // unstick: back up with opposite lock
     if (ai.reverse > 0) {
       ai.reverse -= dt;
       throttle = -1;
-      steer = -steer;
+      steer = -Math.sign(diff || 1);
     } else if (Math.abs(v.speed) < 0.8 && throttle > 0) {
       ai.stuck += dt;
-      if (ai.stuck > 1.5) { ai.reverse = 1.2; ai.stuck = 0; }
+      if (ai.stuck > 1.2) { ai.reverse = 1.3; ai.stuck = 0; }
     } else ai.stuck = 0;
     v.drive(dt, { throttle, steer, brake: 0, handbrake: false }, this.game.world);
     if (v.crew) for (const c of v.crew) { c.animator.steer = v.steer / 0.5; c.animator.update(dt, 0); }

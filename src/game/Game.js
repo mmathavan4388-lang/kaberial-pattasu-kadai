@@ -161,7 +161,6 @@ export class Game {
     this.events.on('horn', (e) => {
       const vol = e.player ? 1 : this.audio.atten(e.x, e.z, 140);
       if (vol > 0.02) this.audio.play('horn', { vol, big: SPECS[e.type]?.big, two: SPECS[e.type]?.two });
-      if (e.player) this.npcs.panic({ x: e.x, z: e.z }, 0); // just noise
     });
     this.events.on('train:horn', (p) => {
       const vol = this.audio.atten(p.x, p.z, 600);

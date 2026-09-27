@@ -157,6 +157,10 @@ export class Railway {
       sb.quad([-5, 4.4, 5.62], [5, 4.4, 5.62], [5, 5.9, 5.62], [-5, 5.9, 5.62], C('#fff'), this.mats.signUV(`station_${st.id}`));
       sb.setTransform(null);
       this.colliders.push({ type: 'rect', x: b.x, z: b.z, hw: 17, hd: 5.5, c: Math.cos(b.rot), s: Math.sin(b.rot), h: 6 });
+      // paved forecourt in front of the station building
+      db.place(b.x, 0, b.z, b.rot);
+      db.quad([-20, 0.03, 30], [20, 0.03, 30], [20, 0.03, 5.5], [-20, 0.03, 5.5], C('#aaa396'));
+      db.setTransform(null);
       this.stationInfo.push({ ...st, s, x: plat.x, z: plat.z, door: { x: b.x + px * 7, z: b.z + pz * 7 } });
     }
     const add = (bld, mat, shadow) => {

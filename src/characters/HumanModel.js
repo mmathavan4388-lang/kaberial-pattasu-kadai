@@ -157,16 +157,32 @@ function strip(points, width, thickness = 0.006) {
   return b.build();
 }
 
+/** Keep only triangles whose vertices pass `keep`, then drop unused vertices. */
 function filterTriangles(g, keep) {
   const pos = g.attributes.position;
   const idx = g.index.array;
-  const out = [];
+  const tris = [];
   for (let i = 0; i < idx.length; i += 3) {
     const a = idx[i], b = idx[i + 1], c = idx[i + 2];
-    if (keep(pos.getX(a), pos.getY(a), pos.getZ(a)) && keep(pos.getX(b), pos.getY(b), pos.getZ(b)) && keep(pos.getX(c), pos.getY(c), pos.getZ(c))) out.push(a, b, c);
+    if (keep(pos.getX(a), pos.getY(a), pos.getZ(a)) && keep(pos.getX(b), pos.getY(b), pos.getZ(b)) && keep(pos.getX(c), pos.getY(c), pos.getZ(c))) tris.push(a, b, c);
   }
-  g.setIndex(out);
-  return g;
+  const remap = new Map();
+  const out = new THREE.BufferGeometry();
+  const names = Object.keys(g.attributes);
+  const data = Object.fromEntries(names.map((n) => [n, []]));
+  const index = tris.map((v) => {
+    if (!remap.has(v)) {
+      remap.set(v, remap.size);
+      for (const n of names) {
+        const at = g.attributes[n];
+        for (let k = 0; k < at.itemSize; k++) data[n].push(at.array[v * at.itemSize + k]);
+      }
+    }
+    return remap.get(v);
+  });
+  for (const n of names) out.setAttribute(n, new THREE.Float32BufferAttribute(data[n], g.attributes[n].itemSize));
+  out.setIndex(index);
+  return out;
 }
 
 /** Sculpt the head sphere into a head shape (local coords around head centre). */
@@ -187,13 +203,13 @@ function sculptHead(x, y, z, R, a) {
 }
 
 function headShell(R, a, scale, keep) {
-  const g = new THREE.SphereGeometry(R, 26, 20);
+  let g = new THREE.SphereGeometry(R, 24, 18);
   const pos = g.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const [x, y, z] = sculptHead(pos.getX(i), pos.getY(i), pos.getZ(i), R, a);
     pos.setXYZ(i, x * scale, y * scale, z * scale);
   }
-  if (keep) filterTriangles(g, keep);
+  if (keep) g = filterTriangles(g, keep);
   g.computeVertexNormals();
   return g;
 }

@@ -132,7 +132,7 @@ export class TextureFactory {
         g.stroke();
       }
       const lit = rng() < 0.45;
-      ge.fillStyle = lit ? (rng() < 0.7 ? '#ffc27a' : '#dff3ff') : '#000';
+      ge.fillStyle = lit ? (rng() < 0.8 ? (rng() < 0.5 ? '#ffc27a' : '#ffb35c') : '#e2f0ff') : '#000';
       ge.fillRect(x + (wx - x), yAbs + wy, ww, wh);
     };
 
@@ -282,7 +282,7 @@ export class TextureFactory {
         g.fillStyle = 'rgba(255,255,255,0.12)';
         g.fillRect(x + cell * 0.24, y + cell * 0.3, cell * 0.52, cell * 0.06);
         if (rng() < 0.45) {
-          ge.fillStyle = rng() < 0.75 ? '#ffc47a' : '#d8eeff';
+          ge.fillStyle = rng() < 0.82 ? '#ffbe6e' : '#d8eeff';
           ge.fillRect(x + cell * 0.24, y + cell * 0.3, cell * 0.52, cell * 0.42);
         }
       }

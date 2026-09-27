@@ -41,6 +41,7 @@ export class Player {
   }
 
   update(dt, input, camYaw) {
+    if (this.bumpCd) this.bumpCd = Math.max(0, this.bumpCd - dt);
     if (this.vehicle) this.updateDriving(dt, input);
     else this.updateOnFoot(dt, input, camYaw);
     this.stamina = clamp(this.stamina + dt * (this.sprinting ? -0.12 : 0.18), 0, 1);
@@ -89,6 +90,7 @@ export class Player {
     this.pos.z += this.vel.z * dt;
     this.pos.y += this.vy * dt;
     world.resolveCircle(this.pos, 0.33);
+    this.pushOutOfPeople();
     const ground = world.heightAt(this.pos.x, this.pos.z);
     if (this.pos.y <= ground) {
       // step up small ledges (sidewalk curbs, platforms)
@@ -116,6 +118,29 @@ export class Player {
     } else if ((a.state === 'phone' || a.state === 'cheer') && hs > 0.5) a.setState('walk');
     a.update(dt, hs, { lookYaw: 0 });
     this.syncMesh();
+  }
+
+  /** Simple body collision with nearby NPCs (they are solid, like the world). */
+  pushOutOfPeople() {
+    const g = this.game;
+    const test = (m) => {
+      const dx = this.pos.x - m.position.x;
+      const dz = this.pos.z - m.position.z;
+      const d2 = dx * dx + dz * dz;
+      if (d2 < 0.5 && d2 > 1e-6) {
+        const d = Math.sqrt(d2);
+        const push = 0.707 - d;
+        this.pos.x += (dx / d) * push;
+        this.pos.z += (dz / d) * push;
+        if (this.speed > 3.5 && !this.bumpCd) {
+          this.bumpCd = 2;
+          g.dialogue.bark(g.lines.pick('hero_bump'), this.mesh.position, 1.8);
+        }
+      }
+    };
+    for (const w of g.npcs.walkers) test(w.ent.model.mesh);
+    for (const s of g.npcs.statics) test(s.ent.model.mesh);
+    for (const n of g.missions.npcs.values()) test(n.model.mesh);
   }
 
   knockDown(damage, from) {

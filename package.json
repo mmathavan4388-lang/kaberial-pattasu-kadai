@@ -1,0 +1,10 @@
+{
+  "name": "mavrix-fire",
+  "private": true,
+  "scripts": {
+    "setup": "npm --prefix backend install && npm --prefix web install",
+    "build": "npm --prefix web run build",
+    "start": "npm --prefix backend start",
+    "test": "npm --prefix backend test"
+  }
+}

@@ -14,10 +14,8 @@ if (isProd) {
   jwtSecret = required('JWT_SECRET');
   if (jwtSecret.length < 32) throw new Error('JWT_SECRET must be at least 32 characters');
   required('DATABASE_URL');
-  required('RAZORPAY_KEY_ID');
-  required('RAZORPAY_KEY_SECRET');
-  required('RAZORPAY_WEBHOOK_SECRET');
-  required('PUBLIC_URL');
+  if (!env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET || !env.RAZORPAY_WEBHOOK_SECRET)
+    console.warn('WARNING: Razorpay keys missing - browsing works, but online payments return payments_not_configured.');
 } else if (!jwtSecret) {
   jwtSecret = crypto.randomBytes(32).toString('hex'); // dev only: sessions reset on restart
 }
@@ -31,7 +29,7 @@ export const config = {
   databaseUrl: env.DATABASE_URL || null, // unset => embedded Postgres (PGlite) for dev/test
   pgliteDir: env.PGLITE_DIR || (isTest ? null : './.data/pglite'),
   // One-time secret the owner sets at deploy time to claim the First Admin Setup.
-  adminSetupToken: env.ADMIN_SETUP_TOKEN || null,
+  adminSetupToken: env.ADMIN_SETUP_TOKEN || (isProd ? null : 'dev-setup-token'), // dev default only
   razorpay: {
     keyId: env.RAZORPAY_KEY_ID || null,
     keySecret: env.RAZORPAY_KEY_SECRET || null,

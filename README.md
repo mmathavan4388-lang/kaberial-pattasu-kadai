@@ -21,7 +21,16 @@ Official logo: `web/public/brand/` (the uploaded artwork, resized only — never
 - Customer Care: tickets → admin inbox → admin replies → in-app notifications both ways; Open/Pending/Resolved.
 - Soft deletes for users/products; orders, payments, refunds, support and audit logs are never deleted.
 
-## Run locally
+## Easiest: run on your computer
+```
+npm run setup && npm run build && npm start     # then open http://localhost:4000
+```
+Admin setup token in dev is `dev-setup-token`.
+
+## One-click deploy
+Render > New > Blueprint > select this repo (`render.yaml` creates the app + Postgres). Read `ADMIN_SETUP_TOKEN` from Render > Environment, then open `/admin/setup`.
+
+## Run locally (dev mode)
 ```
 cd backend && npm i && ADMIN_SETUP_TOKEN=choose-a-secret npm run dev   # API :4000, embedded DB
 cd web && npm i && npm run dev                                        # UI :5173 (proxies /api)

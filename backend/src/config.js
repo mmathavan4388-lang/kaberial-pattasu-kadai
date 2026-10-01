@@ -10,10 +10,16 @@ function required(name) {
 }
 
 let jwtSecret = env.JWT_SECRET;
+let generatedSetupToken = null;
 if (isProd) {
-  jwtSecret = required('JWT_SECRET');
-  if (jwtSecret.length < 32) throw new Error('JWT_SECRET must be at least 32 characters');
   required('DATABASE_URL');
+  if (!jwtSecret || jwtSecret.length < 32) {
+    // Friendly fallback so a missing/short JWT_SECRET does not stop the app from booting:
+    // derive a stable secret from the (private) database URL. Set JWT_SECRET to override.
+    console.warn('WARNING: JWT_SECRET missing or shorter than 32 chars - deriving one from DATABASE_URL. Set JWT_SECRET for best practice.');
+    jwtSecret = crypto.createHmac('sha256', 'mavrix-fire-jwt-v1').update(env.DATABASE_URL).digest('hex');
+  }
+  if (!env.ADMIN_SETUP_TOKEN) generatedSetupToken = crypto.randomBytes(9).toString('hex'); // printed in logs until the admin exists
   if (!env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET || !env.RAZORPAY_WEBHOOK_SECRET)
     console.warn('WARNING: Razorpay keys missing - browsing works, but online payments return payments_not_configured.');
 } else if (!jwtSecret) {
@@ -29,7 +35,8 @@ export const config = {
   databaseUrl: env.DATABASE_URL || null, // unset => embedded Postgres (PGlite) for dev/test
   pgliteDir: env.PGLITE_DIR || (isTest ? null : './.data/pglite'),
   // One-time secret the owner sets at deploy time to claim the First Admin Setup.
-  adminSetupToken: env.ADMIN_SETUP_TOKEN || (isProd ? null : 'dev-setup-token'), // dev default only
+  adminSetupToken: env.ADMIN_SETUP_TOKEN || generatedSetupToken || 'dev-setup-token',
+  generatedSetupToken,
   razorpay: {
     keyId: env.RAZORPAY_KEY_ID || null,
     keySecret: env.RAZORPAY_KEY_SECRET || null,

@@ -19,12 +19,14 @@ if (isProd) {
     console.warn('WARNING: JWT_SECRET missing or shorter than 32 chars - deriving one from DATABASE_URL. Set JWT_SECRET for best practice.');
     jwtSecret = crypto.createHmac('sha256', 'mavrix-fire-jwt-v1').update(env.DATABASE_URL).digest('hex');
   }
-  if (!env.ADMIN_SETUP_TOKEN) generatedSetupToken = crypto.randomBytes(9).toString('hex'); // printed in logs until the admin exists
   if (!env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET || !env.RAZORPAY_WEBHOOK_SECRET)
     console.warn('WARNING: Razorpay keys missing - browsing works, but online payments return payments_not_configured.');
 } else if (!jwtSecret) {
   jwtSecret = crypto.randomBytes(32).toString('hex'); // dev only: sessions reset on restart
 }
+
+// No token configured => generate a random one per boot (printed in the server log until the admin exists).
+if (!env.ADMIN_SETUP_TOKEN && !isTest) generatedSetupToken = crypto.randomBytes(9).toString('hex');
 
 export const config = {
   isProd,

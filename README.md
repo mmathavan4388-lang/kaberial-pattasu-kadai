@@ -25,7 +25,7 @@ Official logo: `web/public/brand/` (the uploaded artwork, resized only — never
 ```
 npm run setup && npm run build && npm start     # then open http://localhost:4000
 ```
-Admin setup token in dev is `dev-setup-token`.
+The admin setup token is printed in the terminal (look for FIRST ADMIN SETUP TOKEN).
 
 ## One-click deploy
 Render > New > Blueprint > select this repo (`render.yaml` creates the app + Postgres). Read `ADMIN_SETUP_TOKEN` from Render > Environment, then open `/admin/setup`.
